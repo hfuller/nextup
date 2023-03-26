@@ -1,0 +1,35 @@
+html,body {
+	font-family:sans-serif;
+	margin:0px;
+	padding:0px;
+}
+
+header {
+	display:flex;
+	align-items:center;
+	margin:12px 0px;
+	border-bottom:1px solid;
+	padding-bottom:12px;
+}
+header * {
+	margin-left:12px;
+	margin-right:4px;
+}
+header img {
+	max-height:160px;
+}
+header section * {
+	margin:0px;
+}
+header section h1 {
+	font-size:72px;
+}
+header section h2 {
+	font-size:48px;
+}
+header section aside {
+	margin-left:4px;
+}
+ol {
+	list-style: square;
+}
