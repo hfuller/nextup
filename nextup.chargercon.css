@@ -1,0 +1,22 @@
+html {
+	background-color:#000;
+	color:#fff;
+}
+
+h1 {
+	display:none;
+}
+header img {
+	content:url("https://chargercon.com/wp-content/uploads/2014/12/ChargerCon-logo_1Line.png");
+}
+
+li.event-past {
+	background-color:#444;
+	color:#777;
+}
+li.event-present {
+	background-color:#006800;
+}
+li.event-next {
+	background-color:#005;
+}
