@@ -178,9 +178,11 @@ function updateRelativeTimes(ignoreConditionals) {
 	//TODO refactor this
 	for ( let li of document.getElementsByClassName('event-past') ) {
 		//"ended x minutes ago"
-		let mins = ( new Date(li.getAttribute('end-time')) - new Date(Date.now()) ) / 1000 / 60;
-		if ( ignoreConditionals || mins < 60 ) {
-			li.getElementsByTagName('aside')[0].innerHTML = "Ended" + Math.floor(mins) + " minutes ago";
+		let mins = ( new Date(Date.now()) - new Date(li.getAttribute('end-time')) ) / 1000 / 60;
+		if ( mins <= 2 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Ending now";
+		} else if ( ignoreConditionals || mins < 15 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Ended " + Math.floor(mins) + " minutes ago";
 		} else {
 			li.getElementsByTagName('aside')[0].innerHTML = ""; //HACK HACK HACK, should never happen anyway
 		}
@@ -188,14 +190,18 @@ function updateRelativeTimes(ignoreConditionals) {
 	for ( let li of document.getElementsByClassName('event-present') ) {
 		//"ends in x minutes"
 		let mins = ( new Date(li.getAttribute('end-time')) - new Date(Date.now()) ) / 1000 / 60;
-		if ( ignoreConditionals || mins < 15 ) {
+		if ( mins <= 2 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Ending now";
+		} else if ( ignoreConditionals || mins < 15 ) {
 			li.getElementsByTagName('aside')[0].innerHTML = "Ends in " + Math.floor(mins) + " minutes";
 		}
 	}
 	for ( let li of document.getElementsByClassName('event-next') ) {
 		//"starts in x minutes"
 		let mins = ( new Date(li.getAttribute('start-time')) - new Date(Date.now()) ) / 1000 / 60;
-		if ( ignoreConditionals || mins < 60 ) {
+		if ( mins <= 2 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Starting now";
+		} else if ( ignoreConditionals || mins < 60 ) {
 			li.getElementsByTagName('aside')[0].innerHTML = "Starts in " + Math.floor(mins) + " minutes";
 		}
 	}
