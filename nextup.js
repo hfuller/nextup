@@ -1,4 +1,5 @@
 ONE_HOUR = 60 * 60 * 1000; /* ms */
+const searchParams = new URLSearchParams(window.location.search.substring(1));
 
 function fancyLog(category, color, message) {
 	console.log("%c[" + category + "]", "color:" + color, message);
@@ -7,6 +8,9 @@ function setStatusMessage(message) {
 	fancyLog("STATUS", 'blue', message);
 	if ( message === false ) {
 		message = "Current Schedule";
+		if ( searchParams.has("location") ) {
+			message += " for " + searchParams.get("location");
+		}
 	}
 	document.getElementById("status-message").innerHTML = message;
 }
@@ -46,6 +50,13 @@ async function fetchCalendarData() {
 	let jCalEventOccurrenceTuples = [];
 	for ( let rawEvent of jCalRawEvents ) {
 		let event = new ICAL.Event(new ICAL.Component(rawEvent));
+
+		//Filtering based on location, if requested.
+		if ( searchParams.has('location') ) {
+			//Skip it if the event's location doesn't contain the string requested in the URL.
+			if ( ! event.location.includes(searchParams.get('location')) ) continue;
+		}
+
 		let component = new ICAL.Component(rawEvent);
 		let expand = new ICAL.RecurExpansion({
 			component: component,
