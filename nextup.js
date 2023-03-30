@@ -85,9 +85,12 @@ function renderCalendar(tuples) {
 	ol.replaceChildren([]);
 
 	fancyLog("RENDER", 'orange', 'doing stuff');
+	let nextEventMarked = false;
 	for ( let tuple of tuples ) {
 		let eSummary = document.createElement('h3');
 		eSummary.innerHTML = tuple[0].summary;
+
+		let eRelativeTime = document.createElement('aside');
 
 		//date magic
 		let occurrenceBegin = tuple[1].toJSDate();
@@ -105,29 +108,97 @@ function renderCalendar(tuples) {
 
 		let li = document.createElement('li');
 		li.appendChild(eSummary);
+		li.appendChild(eRelativeTime);
 		li.appendChild(eTimes);
+		li.setAttribute('start-time', occurrenceBegin);
+		li.setAttribute('end-time', occurrenceEnd);
 
 		if ( occurrenceEnd < now ) {
 			//this event already ended
+			li.classList.add("event-past");
 		}
 		if ( occurrenceBegin < now && occurrenceEnd > now ) {
 			//this event is in progress
+			li.classList.add("event-present");
 		}
 		if ( occurrenceBegin > now ) {
 			//this event hasn't started
+			li.classList.add("event-future");
+			if ( !nextEventMarked ) {
+				nextEventMarked = true;
+				li.classList.add("event-next");
+			}
 		}
 
 		ol.appendChild(li);
 	}
 
-	console.log(tuples);
+	//console.log(tuples);
 	fancyLog("RENDER", 'orange', "done rendering");
 }
 
 async function updateDisplay() {
 	jCalEventOccurrenceTuples = await fetchCalendarData();
 	renderCalendar(jCalEventOccurrenceTuples);
+	updateRelativeTimes();
 	document.getElementById("last-updated").innerHTML = "as of " + new Date(Date.now()).toLocaleString('default');
+
+	fancyLog("UPDATE", 'yellow', "Determining when we next have to update this sucker");
+	let now = new Date(Date.now());
+	let soon = new Date(Date.now() + ONE_HOUR);
+	let msecsBeforeNextUpdate = ONE_HOUR;
+	for ( let tuple of jCalEventOccurrenceTuples ) { 
+		let when = tuple[1].toJSDate();
+		if ( when < now ) {
+			fancyLog("UPDATE", 'yellow', "We may be right in the middle of an event");
+			when = getTupleEndDate(tuple);
+		}
+		if ( when > now && when < soon ) {
+			fancyLog("UPDATE", 'yellow', tuple[0].summary + " is starting or ending soon");
+			let msecsBeforeThisEvent = when - now;
+			if ( msecsBeforeThisEvent < msecsBeforeNextUpdate ) {
+				msecsBeforeNextUpdate = msecsBeforeThisEvent;
+				fancyLog("UPDATE", 'yellow', "Now we will update in only " + msecsBeforeNextUpdate);
+			}
+		}
+	}
+	setTimeout(updateDisplay, msecsBeforeNextUpdate);
+	fancyLog("UPDATE", 'yellow', "Update scheduled for " + msecsBeforeNextUpdate);
+}
+function updateRelativeTimes(ignoreConditionals) {
+	//TODO refactor this
+	for ( let li of document.getElementsByClassName('event-past') ) {
+		//"ended x minutes ago"
+		let mins = ( new Date(li.getAttribute('end-time')) - new Date(Date.now()) ) / 1000 / 60;
+		if ( ignoreConditionals || mins < 60 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Ended" + Math.floor(mins) + " minutes ago";
+		} else {
+			li.getElementsByTagName('aside')[0].innerHTML = ""; //HACK HACK HACK, should never happen anyway
+		}
+	}
+	for ( let li of document.getElementsByClassName('event-present') ) {
+		//"ends in x minutes"
+		let mins = ( new Date(li.getAttribute('end-time')) - new Date(Date.now()) ) / 1000 / 60;
+		if ( ignoreConditionals || mins < 15 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Ends in " + Math.floor(mins) + " minutes";
+		}
+	}
+	for ( let li of document.getElementsByClassName('event-next') ) {
+		//"starts in x minutes"
+		let mins = ( new Date(li.getAttribute('start-time')) - new Date(Date.now()) ) / 1000 / 60;
+		if ( ignoreConditionals || mins < 60 ) {
+			li.getElementsByTagName('aside')[0].innerHTML = "Starts in " + Math.floor(mins) + " minutes";
+		}
+	}
+}
+function updateClock() {
+}
+
+async function debugStyleEvents() {
+	let x = document.getElementsByTagName('li');
+	x[0].classList = "event-past";
+	x[1].classList = "event-present";
+	x[2].classList = "event-next";
 }
 
 document.addEventListener("DOMContentLoaded", async function(){
@@ -138,4 +209,7 @@ document.addEventListener("DOMContentLoaded", async function(){
 	setStatusMessage("Loading calendar");
 	await updateDisplay();
 	setStatusMessage(false);
+
+	setInterval(updateRelativeTimes, 60000);
+	setInterval(updateClock, 500);
 });
