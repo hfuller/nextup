@@ -142,6 +142,9 @@ function renderCalendar(tuples) {
 }
 
 async function updateDisplay() {
+	fancyLog("UPDATE", 'yellow', "Setting a watchdog timeout in case something goes horribly wrong");
+	let tempTimeout = setTimeout(updateDisplay, 5*60*1000);
+	
 	jCalEventOccurrenceTuples = await fetchCalendarData();
 	renderCalendar(jCalEventOccurrenceTuples);
 	updateRelativeTimes();
@@ -166,8 +169,10 @@ async function updateDisplay() {
 			}
 		}
 	}
+
+	clearTimeout(tempTimeout);
 	setTimeout(updateDisplay, msecsBeforeNextUpdate);
-	fancyLog("UPDATE", 'yellow', "Update scheduled for " + msecsBeforeNextUpdate);
+	fancyLog("UPDATE", 'yellow', "Watchdog cleared and update scheduled for " + msecsBeforeNextUpdate);
 }
 function updateRelativeTimes(ignoreConditionals) {
 	//TODO refactor this
