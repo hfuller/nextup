@@ -106,10 +106,14 @@ function renderCalendar(tuples) {
 		let completeString = (beginString + " - " + endString).replaceAll(":00", ""); //lol
 		eTimes.innerHTML = completeString;
 
+		let eLocation = document.createElement('h4');
+		eLocation.innerHTML = tuple[0].location;
+
 		let li = document.createElement('li');
 		li.appendChild(eSummary);
 		li.appendChild(eRelativeTime);
 		li.appendChild(eTimes);
+		li.appendChild(eLocation);
 		li.setAttribute('start-time', occurrenceBegin);
 		li.setAttribute('end-time', occurrenceEnd);
 

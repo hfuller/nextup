@@ -83,6 +83,7 @@ li aside {
 	font-variant:all-small-caps;
 }
 li h4 {
+	line-height:0%; /*because that makes sense*/
 }
 
 
