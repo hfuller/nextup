@@ -22,18 +22,18 @@ async function fetchCalendarData() {
 
 	let calendarUrl = config.calendarUrl;
 	if ( config.calendarUseCorsProxy ) {
-		fancyLog("CALUPD", 'green', "Using CORS proxy");
+		fancyLog("CFETCH", 'green', "Using CORS proxy");
 		calendarUrl = config.calendarUseCorsProxy + "?" + encodeURIComponent(calendarUrl);
 	}
-	fancyLog("CALUPD", 'green', calendarUrl);
+	fancyLog("CFETCH", 'green', calendarUrl);
 	const calendarResponse = await fetch(calendarUrl);
 	let iCalData = await calendarResponse.text();
-	console.log(iCalData.split('\n')[0] + "...");
+	fancyLog("CFETCH", 'green', (iCalData.split('\n')[0] + "..."));
 
-	fancyLog("CALUPD", 'green', "Parsing calendar");
+	fancyLog("CFETCH", 'green', "Parsing calendar");
 	let jCalData = ICAL.parse(iCalData);
 
-	fancyLog("CALUPD", 'green', "Getting only events");
+	fancyLog("CFETCH", 'green', "Getting only events");
 	//We use only the last section(?) - hard coding for google calendar (HACK)
 	let jCalRawEvents = jCalData[jCalData.length-1].filter(function(thing) {
 		return thing[0].toLowerCase() == "vevent";
@@ -42,7 +42,7 @@ async function fetchCalendarData() {
 	//	return new ICAL.Component(thing);
 	//});
 
-	fancyLog("CALUPD", 'green', "Filtering " + jCalRawEvents.length + " events");
+	fancyLog("CFETCH", 'green', "Filtering " + jCalRawEvents.length + " events");
 	let jCalEventOccurrenceTuples = [];
 	for ( let rawEvent of jCalRawEvents ) {
 		let event = new ICAL.Event(new ICAL.Component(rawEvent));
@@ -64,14 +64,14 @@ async function fetchCalendarData() {
 	}
 
 
-	fancyLog("CALUPD", 'green', "Filtering " + jCalEventOccurrenceTuples.length + " tuples");
+	fancyLog("CFETCH", 'green', "Filtering " + jCalEventOccurrenceTuples.length + " tuples");
 	jCalEventOccurrenceTuples = jCalEventOccurrenceTuples.filter(function(thing) {
 		//return getTupleEndDate(thing) > Date.now();
 		//actually let's filter only stuff that ended at least an hour ago
 		return getTupleEndDate(thing) > new Date(Date.now() - ONE_HOUR);
 	});
 
-	fancyLog("CALUPD", 'green', "Sorting " + jCalEventOccurrenceTuples.length + " events");
+	fancyLog("CFETCH", 'green', "Sorting " + jCalEventOccurrenceTuples.length + " events");
 	jCalEventOccurrenceTuples = jCalEventOccurrenceTuples.sort(function(b,a){
 		return new Date(b[1].toJSDate()) - new Date(a[1].toJSDate());
 	});
